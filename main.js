@@ -2,19 +2,18 @@ const path = require("path");
 /*
  * Project: Milestone 1
  * File Name: main.js
- * Description:
+ * Description: This file contains the main logic for the application.
  *
- * Created Date:
- * Author:
+ * Created Date: October 10 2023
+ * Author: Brandon Barnett
  *
  */
 
 const IOhandler = require("./IOhandler");
-const zipFilePath = path.join(__dirname, "myfile.zip");
-const pathUnzipped = path.join(__dirname, "unzipped");
 const pathProcessed = path.join(__dirname, "grayscaled");
-const unzipper = require("unzipper");
 const fs = require("fs");
+const pathIn = path.join(__dirname, "myfile.zip");
+const pathOut = path.join(__dirname, "unzipped");
 
 // Step 1: read zip
 // Step 2: unzip
@@ -24,29 +23,5 @@ const fs = require("fs");
 // all errors must show in .catch in promise chain
 // use promise.all() to wait for all images to be grayscaled
 
-fs.createReadStream(zipFilePath)
-.pipe(unzipper.Extract({ path: pathUnzipped }))
-
-const PNG = require("pngjs").PNG;
-
-fs.createReadStream("unzipped/in.png")
-  .pipe(
-    new PNG({})
-  )
-  .on("parsed", function () {
-    for (var y = 0; y < this.height; y++) {
-      for (var x = 0; x < this.width; x++) {
-        var idx = (this.width * y + x) << 2;
-
-        // invert color
-        this.data[idx] = 255 - this.data[idx];
-        this.data[idx + 1] = 255 - this.data[idx + 1];
-        this.data[idx + 2] = 255 - this.data[idx + 2];
-
-        // and reduce opacity
-        this.data[idx + 3] = this.data[idx + 3] >> 1;
-      }
-    }
-
-    this.pack().pipe(fs.createWriteStream("out.png"));
-  });
+IOhandler.unzip(pathIn, pathOut)
+IOhandler.readDir(pathOut).then((pngs) => {console.log(pngs);})
