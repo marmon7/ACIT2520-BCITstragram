@@ -24,4 +24,23 @@ const pathOut = path.join(__dirname, "unzipped");
 // use promise.all() to wait for all images to be grayscaled
 
 IOhandler.unzip(pathIn, pathOut)
-IOhandler.readDir(pathOut).then((pngs) => {console.log(pngs);})
+  .then(() => {
+    return IOhandler.readDir(pathOut);
+  })
+  .catch((err) => {
+    console.log(err);
+  })
+  .then((pngs) => {
+    return Promise.all(
+      pngs.map((png) => {
+        return IOhandler.grayScale(
+          path.join(pathOut, png),
+          path.join(pathProcessed, png)
+        );
+      })
+    );
+  })
+  .catch((err) => {
+    console.log(err);
+  })
+  .then(console.log("All images grayscaled successfully"));

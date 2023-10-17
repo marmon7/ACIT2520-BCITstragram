@@ -65,8 +65,21 @@ const grayScale = (pathIn, pathOut) => {
   const readStream = fs.createReadStream(pathIn);
   const writeStream = fs.createWriteStream(pathOut);
   const pngStream = new PNG().on("parsed", function () {
-    const modifiedPNG = handleGreyScale();
-    modifiedPNG.pack();
+    for (let y = 0; y < this.height; y++) {
+      for (let x = 0; x < this.width; x++) {
+        const idx = (this.width * y + x) << 2;
+        const red = this.data[idx];
+        const green = this.data[idx + 1];
+        const blue = this.data[idx + 2];
+        const alpha = this.data[idx + 3];
+        const grey = (red + green + blue) / 3;
+        this.data[idx] = grey;
+        this.data[idx + 1] = grey;
+        this.data[idx + 2] = grey;
+        this.data[idx + 3] = alpha;
+      }
+    }
+    this.pack();
   });
   readStream
     .on("error", (err) => {
@@ -77,10 +90,10 @@ const grayScale = (pathIn, pathOut) => {
       reject(err);
     })
     .pipe(writeStream)
-    .on("error", (err) => reject(err));
+    .on("error", (err) => {
+      reject(err);
+    });
 };
-
-function handleGreyScale() {}
 
 module.exports = {
   unzip,
