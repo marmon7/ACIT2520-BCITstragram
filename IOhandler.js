@@ -8,7 +8,7 @@
  *
  */
 
-const unzipper = require("unzipper"),
+const AdmZip = require("adm-zip"),
   fs = require("fs"),
   PNG = require("pngjs").PNG,
   path = require("path");
@@ -22,17 +22,14 @@ const unzipper = require("unzipper"),
  */
 const unzip = (pathIn, pathOut) => {
   return new Promise((resolve, reject) => {
-    fs.createReadStream(pathIn)
-      .on("error", (err) => {
+    const zip = new AdmZip(pathIn);
+    zip.extractAllToAsync(pathOut, true, (err) => {
+      if (err) {
         reject(err);
-      })  
-      .pipe(unzipper.Extract({ path: pathOut }))
-      .on("close", () => {
+      } else {
         resolve();
-      })
-      .on("error", (err) => {
-        reject(err);
-      });
+      }
+    });
   });
 };
 
@@ -69,23 +66,21 @@ const grayScale = (pathIn, pathOut) => {
   const writeStream = fs.createWriteStream(pathOut);
   const pngStream = new PNG().on("parsed", function () {
     const modifiedPNG = handleGreyScale();
-    modifiedPNG.pack()
-})
-readStream
-.on("error", (err) => {
-  reject(err);
-})
-.pipe(pngStream)
-.on("error", (err) => {
-  reject(err);
-})
-.pipe(writeStream)
-.on("error", (err) => (
-  reject(err)))};
+    modifiedPNG.pack();
+  });
+  readStream
+    .on("error", (err) => {
+      reject(err);
+    })
+    .pipe(pngStream)
+    .on("error", (err) => {
+      reject(err);
+    })
+    .pipe(writeStream)
+    .on("error", (err) => reject(err));
+};
 
-function handleGreyScale() {
-  
-}
+function handleGreyScale() {}
 
 module.exports = {
   unzip,
